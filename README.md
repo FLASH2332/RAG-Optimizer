@@ -40,6 +40,24 @@ tags:
 
 RagOptimizerEnv simulates the critical and computationally intensive role of an AI Data Engineer. The environment forces an autonomous agent to resolve conflicting semantic documentation, heuristically categorize disjointed metadata, and structurally splinter monolithic text corpora to prevent embedding decay within a Retrieval-Augmented Generation (RAG) pipeline.
 
+```mermaid
+flowchart TD
+    Agent[LLM Agent] -->|Pydantic Actions: read, update, delete| Env[RagOptimizerEnvironment]
+    Env -->|Schema & Reward Feedback| Agent
+    
+    subgraph Environment Engine
+    Env -->|CRUD Operations| KB[(Document Vector Store)]
+    Distractors[Noise Text] -.->|Dilutes search matrix| KB
+    end
+    
+    subgraph Validation Loop
+    KB -->|TF-IDF Vectorization| Grader[Deterministic Grader]
+    Grader -->|Cosine Similarity| Tests[Hidden Validation Suite]
+    Tests -->|Recall@3 Yield| Reward([Intermediate Reward: 0.0 to 1.0])
+    Reward -.-> Env
+    end
+```
+
 ## The Engineering Problem
 
 A pervasive engineering bottleneck in deployed RAG systems is **embedding decay caused by underlying data swamps**. A corpus containing overlapping legacy documentation, unstructured support tickets, and bloated monolithic manuals causes downstream deterministic embedding models to suffer from severe multi-collinearity and contextual wash-out.
