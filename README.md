@@ -42,18 +42,18 @@ RagOptimizerEnv simulates the critical and computationally intensive role of an 
 
 ```mermaid
 flowchart TD
-    Agent["LLM Agent"] -->|"Pydantic Actions: read, update, delete"| Env["RagOptimizerEnvironment"]
-    Env -->|"Schema & Reward Feedback"| Agent
+    Agent[LLM Agent] -->|Pydantic Actions: read, update, delete| Env[RagOptimizerEnvironment]
+    Env -->|Schema & Reward Feedback| Agent
     
     subgraph Environment Engine
-    Env -->|"CRUD Operations"| KB[("Document Vector Store")]
-    Distractors["Noise Text"] -.->|"Dilutes search matrix"| KB
+    Env -->|CRUD Operations| KB[(Document Vector Store)]
+    Distractors[Noise Text] -.->|Dilutes search matrix| KB
     end
     
     subgraph Validation Loop
-    KB -->|"TF-IDF Vectorization"| Grader["Deterministic Grader"]
-    Grader -->|"Cosine Similarity"| Tests["Hidden Validation Suite"]
-    Tests -->|"Recall@3 Yield"| Reward(["Intermediate Reward (0.0 to 1.0)"])
+    KB -->|TF-IDF Vectorization| Grader[Deterministic Grader]
+    Grader -->|Cosine Similarity| Tests[Hidden Validation Suite]
+    Tests -->|Recall@3 Yield| Reward([Intermediate Reward: 0.0 to 1.0])
     Reward -.-> Env
     end
 ```
