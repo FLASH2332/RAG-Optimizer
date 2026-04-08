@@ -9,6 +9,7 @@ Rag Optimizer Environment Implementation.
 The agent acts as a Data Engineer to un-block a broken RAG pipeline.
 """
 
+from copy import deepcopy
 from uuid import uuid4
 from typing import Dict, Any, List
 
@@ -34,11 +35,10 @@ class RagOptimizerEnvironment(Environment):
 
     SUPPORTS_CONCURRENT_SESSIONS: bool = True
 
-    def __init__(self):
-        self._state = State(episode_id=str(uuid4()), step_count=0)
-        
-        # Initial messy knowledge base
-        self.kb = {
+    @staticmethod
+    def _build_initial_kb() -> Dict[str, Dict[str, Any]]:
+        """Construct a fresh KB snapshot for each new episode/reset."""
+        return {
             "doc_pricing_legacy": {
                 "text": "Pricing for 2021: Enterprise tier is $1000/mo. Standard is $500/mo. All plans include 10 users.",
                 "metadata": {"type": "pricing"}
@@ -68,6 +68,10 @@ class RagOptimizerEnvironment(Environment):
             **{f"doc_distractor_eng_{i}": {"text": f"Engineering architecture decision record {i}. We decided to use {['React', 'Postgres', 'Redis', 'Kafka'][i%4]} because of scaling concerns.", "metadata":{}} for i in range(10)},
             **{f"doc_distractor_random_{i}": {"text": f"Weekly team update notes. Nothing important here, just discussed the weather and the upcoming launch {i}.", "metadata":{}} for i in range(10)},
         }
+
+    def __init__(self):
+        self._state = State(episode_id=str(uuid4()), step_count=0)
+        self.kb = deepcopy(self._build_initial_kb())
         
         # Hidden test suite for the grader
         self.test_suite = [
@@ -106,6 +110,7 @@ class RagOptimizerEnvironment(Environment):
 
     def reset(self) -> RagOptimizerObservation:
         self._state = State(episode_id=str(uuid4()), step_count=0)
+        self.kb = deepcopy(self._build_initial_kb())
         return RagOptimizerObservation(
             message="RagOptimizerEnv Initialized. You have messy chunks in the KB. Resolve conflicts, add metadata tags to short tickets, and splinter monolithic files to win.",
             current_docs=self._get_kb_summary(),
