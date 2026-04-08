@@ -3,6 +3,27 @@ import sys
 import json
 from openai import OpenAI
 
+
+def load_local_env() -> None:
+    """Lightweight .env loader for local runs without requiring python-dotenv."""
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if not os.path.exists(env_path):
+        return
+
+    with open(env_path, "r", encoding="utf-8") as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+
+
+load_local_env()
+
 # Add the envs module to path so we can import client and models
 sys.path.append(os.path.join(os.path.dirname(__file__), "envs", "rag_optimizer_env"))
 from client import RagOptimizerEnvClient
