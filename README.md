@@ -38,8 +38,11 @@ tags:
 
 **DATA ENGINEERING & AI INFRASTRUCTURE**
 
-RagOptimizerEnv simulates the critical and computationally intensive role of an AI Data Engineer. The environment forces an autonomous agent to resolve conflicting semantic documentation, heuristically categorize disjointed metadata, and structurally splinter monolithic text corpora to prevent embedding decay within a Retrieval-Augmented Generation (RAG) pipeline.
-
+<br>
+<p align="center">
+  <img src="assets/Architecture_diagram.png" width="800" alt="System Architecture Diagram" />
+</p>
+<br>
 ## The Engineering Problem
 
 A pervasive engineering bottleneck in deployed RAG systems is **embedding decay caused by underlying data swamps**. A corpus containing overlapping legacy documentation, unstructured support tickets, and bloated monolithic manuals causes downstream deterministic embedding models to suffer from severe multi-collinearity and contextual wash-out.
