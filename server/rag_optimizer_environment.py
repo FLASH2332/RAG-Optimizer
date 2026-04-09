@@ -36,66 +36,62 @@ class RagOptimizerEnvironment(Environment):
 
     def __init__(self):
         self._state = State(episode_id=str(uuid4()), step_count=0)
+        self.kb = {}
+        self.test_suite = []
+        self._setup_task("easy")
         
-        # Initial messy knowledge base
-        self.kb = {
-            "doc_pricing_legacy": {
-                "text": "Pricing for 2021: Enterprise tier is $1000/mo. Standard is $500/mo. All plans include 10 users.",
-                "metadata": {"type": "pricing"}
-            },
-            "doc_pricing_current_v2": {
-                "text": "Current Pricing 2024: Enterprise is $1500/mo. Standard is $750/mo. Refunds are not permitted on the enterprise tier.",
-                "metadata": {}
-            },
-            "doc_shipping_policy": {
-                "text": "All internal shipments to remote branch offices take 5-7 business days. Overnight shipping is only available for C-suite.",
-                "metadata": {"department": "logistics"}
-            },
-            "doc_messy_support_ticket_1": {
-                "text": "User complained the button disappeared on the frontend. Another user said the database latency was high. The frontend team fixed the button by updating CSS.",
-                "metadata": {}
-            },
-            "doc_messy_support_ticket_2": {
-                "text": "Email integration is failing with error 401 Unauthorized. The API key was rotated on Tuesday.",
-                "metadata": {}
-            },
-            "doc_monolithic_onboarding": {
-                "text": "Welcome to the company! Here are some rules. 1) VPN access requires DUO. 2) The cafetaria opens at 8 AM. 3) For HR issues, email hr@company.com. 4) The 2024 holiday schedule includes Dec 25, Jan 1, and July 4. 5) Parking passes must be renewed annually in March.",
-                "metadata": {}
-            },
-            # Add distractor files
-            **{f"doc_distractor_hr_{i}": {"text": f"This is an old HR policy document regarding {['pto', 'sick leave', 'travel', 'expenses'][i%4]} from 201{i%10}.", "metadata":{}} for i in range(10)},
-            **{f"doc_distractor_eng_{i}": {"text": f"Engineering architecture decision record {i}. We decided to use {['React', 'Postgres', 'Redis', 'Kafka'][i%4]} because of scaling concerns.", "metadata":{}} for i in range(10)},
-            **{f"doc_distractor_random_{i}": {"text": f"Weekly team update notes. Nothing important here, just discussed the weather and the upcoming launch {i}.", "metadata":{}} for i in range(10)},
-        }
-        
-        # Hidden test suite for the grader
-        self.test_suite = [
-            {
-                "query": "What is the current 2024 price for standard?",
-                "target_concept": "750/mo"
-            },
-            {
-                "query": "What is the refund policy for enterprise?",
-                "target_concept": "Refunds are not permitted"
-            },
-            {
-                "query": "UI issues frontend CSS missing button",
-                "target_concept": "frontend team fixed the button"
-            },
-            {
-                "query": "How long does shipping take to branch offices?",
-                "target_concept": "5-7 business days"
-            },
-            {
-                "query": "What months do parking passes need to be renewed?",
-                "target_concept": "March"
-            },
-            {
-                "query": "What holidays are we off in 2024?",
-                "target_concept": "July 4"
+    def _setup_task(self, task_id: str):
+        if task_id == "easy":
+            self.kb = {
+                "doc_pricing_legacy": {
+                    "text": "Pricing for 2021: Enterprise tier is $1000/mo. Standard is $500/mo. All plans include 10 users.",
+                    "metadata": {"type": "pricing"}
+                },
+                "doc_pricing_current_v2": {
+                    "text": "Current Pricing 2024: Enterprise is $1500/mo. Standard is $750/mo. Refunds are not permitted on the enterprise tier.",
+                    "metadata": {}
+                },
+                **{f"doc_distractor_random_{i}": {"text": f"Weekly team update notes. Nothing important here, just discussed the weather and the upcoming launch {i}.", "metadata":{}} for i in range(10)}
             }
-        ]
+            self.test_suite = [
+                {"query": "What is the current 2024 price for standard?", "target_concept": "750/mo"},
+                {"query": "What is the refund policy for enterprise?", "target_concept": "Refunds are not permitted"}
+            ]
+        elif task_id == "medium":
+            self.kb = {
+                "doc_messy_support_ticket_1": {
+                    "text": "User complained the button disappeared on the frontend. Another user said the database latency was high. The frontend team fixed the button by updating CSS.",
+                    "metadata": {}
+                },
+                "doc_messy_support_ticket_2": {
+                    "text": "Email integration is failing with error 401 Unauthorized. The API key was rotated on Tuesday.",
+                    "metadata": {}
+                },
+                **{f"doc_distractor_eng_{i}": {"text": f"Engineering architecture decision record {i}. We decided to use {['React', 'Postgres', 'Redis', 'Kafka'][i%4]} because of scaling concerns.", "metadata":{}} for i in range(10)}
+            }
+            self.test_suite = [
+                {"query": "UI issues frontend CSS missing button", "target_concept": "frontend team fixed the button"},
+                {"query": "Email integration 401", "target_concept": "API key was rotated"}
+            ]
+        elif task_id == "hard":
+            self.kb = {
+                "doc_shipping_policy": {
+                    "text": "All internal shipments to remote branch offices take 5-7 business days. Overnight shipping is only available for C-suite.",
+                    "metadata": {"department": "logistics"}
+                },
+                "doc_monolithic_onboarding": {
+                    "text": "Welcome to the company! Here are some rules. 1) VPN access requires DUO. 2) The cafetaria opens at 8 AM. 3) For HR issues, email hr@company.com. 4) The 2024 holiday schedule includes Dec 25, Jan 1, and July 4. 5) Parking passes must be renewed annually in March.",
+                    "metadata": {}
+                },
+                **{f"doc_distractor_hr_{i}": {"text": f"This is an old HR policy document regarding {['pto', 'sick leave', 'travel', 'expenses'][i%4]} from 201{i%10}.", "metadata":{}} for i in range(10)}
+            }
+            self.test_suite = [
+                {"query": "How long does shipping take to branch offices?", "target_concept": "5-7 business days"},
+                {"query": "What months do parking passes need to be renewed?", "target_concept": "March"},
+                {"query": "What holidays are we off in 2024?", "target_concept": "July 4"}
+            ]
+        else:
+            self._setup_task("easy")
 
     def _get_kb_summary(self) -> Dict[str, Dict]:
         """Returns a summary of the KB for the observation."""
@@ -104,10 +100,13 @@ class RagOptimizerEnvironment(Environment):
             summary[k] = {"metadata": v.get("metadata", {}), "length": len(v.get("text", ""))}
         return summary
 
-    def reset(self) -> RagOptimizerObservation:
+    def reset(self, **kwargs) -> RagOptimizerObservation:
         self._state = State(episode_id=str(uuid4()), step_count=0)
+        task_id = kwargs.get("task_id") or kwargs.get("task") or "easy"
+        self._setup_task(task_id)
+        
         return RagOptimizerObservation(
-            message="RagOptimizerEnv Initialized. You have messy chunks in the KB. Resolve conflicts, add metadata tags to short tickets, and splinter monolithic files to win.",
+            message=f"RagOptimizerEnv Initialized for task: {task_id}. Resolve conflicts, append metadata, or splinter chunks to win.",
             current_docs=self._get_kb_summary(),
             done=False,
             reward=self._evaluate_kb()
