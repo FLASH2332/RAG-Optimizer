@@ -1,16 +1,29 @@
-spec_version: 1
-name: rag_optimizer
-type: space
-runtime: fastapi
-app: server.app:app
-port: 8000
+spec_version: "1.0"
+environment:
+  name: "RAG Optimizer"
+  description: "RAG pipeline optimization benchmark. Agents resolve pricing conflicts, route metadata tags, and splinter monolithic content blobs."
+  version: "1.0.0"
+  dockerfile: "Dockerfile"
+  endpoints:
+    reset: "/reset"
+    step: "/step/{session_id}"
+    state: "/state/{session_id}"
 tasks:
   - id: easy
-    steps: 10
-    description: Conflict Resolution - Resolve overlapping pricing parameters by deleting the legacy pricing format.
+    name: "Conflict Resolution"
+    description: "Resolve overlapping pricing parameters by deleting the legacy pricing format."
+    reward_range: [0.1, 0.99]
+    grader: "rag_optimizer.server.grader:grade_easy"
   - id: medium
-    steps: 10
-    description: Ontological Tagging - Route exact programatic metadata tags to support tickets.
+    name: "Ontological Tagging"
+    description: "Route exact programmatic metadata tags to support tickets."
+    reward_range: [0.1, 0.99]
+    grader: "rag_optimizer.server.grader:grade_medium"
   - id: hard
-    steps: 15
-    description: Syntactic Splintering - Break down the monolithic onboarding blob into multiple granular chunks.
+    name: "Syntactic Splintering"
+    description: "Break down the monolithic onboarding blob into multiple granular chunks."
+    reward_range: [0.1, 0.99]
+    grader: "rag_optimizer.server.grader:grade_hard"
+agent:
+  inference_entrypoint: "inference.py"
+  requirements: "requirements.txt"
