@@ -77,6 +77,14 @@ def _safe_reset(env: RagOptimizerEnvClient, task_id: str):
             return env.reset()
 
 
+def _clamp_score(value: float) -> float:
+    if value < 0.01:
+        return 0.01
+    if value > 0.99:
+        return 0.99
+    return value
+
+
 def run_task_episode(
     env: RagOptimizerEnvClient,
     llm_client: OpenAI,
@@ -85,7 +93,7 @@ def run_task_episode(
     step_rewards = []
     success = False
     error_msg = "null"
-    score = 0.0
+    score = 0.01
     step = 0
 
     print(f"[START] task={task_id} env=OpenEnv model={MODEL_NAME}")
@@ -100,7 +108,7 @@ def run_task_episode(
             observation = result.observation
         except Exception as e:
             error_msg = str(e).replace('\n', ' ')
-            print(f"[END] success=false steps=0 score=0.00 rewards=")
+            print(f"[END] success=false steps=0 score=0.01 rewards=")
             return
 
     history = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -153,10 +161,10 @@ def run_task_episode(
             try:
                 result = env.step(action)
                 observation = result.observation
-                reward = result.reward
+                reward = _clamp_score(float(result.reward))
             except Exception as e:
                 error_msg = str(e).replace('\n', ' ')
-                reward = 0.0
+                reward = 0.01
                 result = type("obj", (object,), {"done": True})()
                 observation = type("obj", (object,), {"message": "error", "current_docs": {}})()
 
@@ -167,7 +175,7 @@ def run_task_episode(
 
         if result.done:
             success = True if reward > 0.5 else False
-            score = float(reward)
+            score = _clamp_score(float(reward))
             break
 
         history.append({"role": "assistant", "content": json.dumps(action.model_dump(), default=str)})
@@ -180,7 +188,7 @@ def run_task_episode(
     else:
         # Reached max steps
         success = False
-        score = float(result.reward)
+        score = _clamp_score(float(result.reward))
 
     rewards_str = ",".join([f"{r:.2f}" for r in step_rewards])
     done_str = "true" if success else "false"

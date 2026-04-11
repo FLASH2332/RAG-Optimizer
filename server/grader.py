@@ -7,17 +7,17 @@ def _clamp_score(value: Any) -> float:
     try:
         score = float(value)
     except (TypeError, ValueError):
-        return 0.0
-    if score < 0.0:
-        return 0.0
-    if score > 1.0:
-        return 1.0
+        return 0.01
+    if score < 0.01:
+        return 0.01
+    if score > 0.99:
+        return 0.99
     return score
 
 
 def _extract_score_from_trajectory(trajectory: Any) -> float:
     if trajectory is None:
-        return 0.0
+        return 0.01
 
     if isinstance(trajectory, (int, float)):
         return _clamp_score(trajectory)
@@ -44,7 +44,7 @@ def _extract_score_from_trajectory(trajectory: Any) -> float:
     if isinstance(trajectory, (list, tuple)) and trajectory:
         return _extract_score_from_trajectory(trajectory[-1])
 
-    return 0.0
+    return 0.01
 
 
 def grade_easy(trajectory: Any = None) -> float:
