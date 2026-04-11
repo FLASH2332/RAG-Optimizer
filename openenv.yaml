@@ -4,4 +4,13 @@ type: space
 runtime: fastapi
 app: server.app:app
 port: 8000
-
+tasks:
+  - id: easy
+    steps: 10
+    description: Conflict Resolution - Resolve overlapping pricing parameters by deleting the legacy pricing format.
+  - id: medium
+    steps: 10
+    description: Ontological Tagging - Route exact programatic metadata tags to support tickets.
+  - id: hard
+    steps: 15
+    description: Syntactic Splintering - Break down the monolithic onboarding blob into multiple granular chunks.
