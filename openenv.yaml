@@ -1,4 +1,5 @@
 spec_version: "1.0"
+name: "rag_optimizer"
 environment:
   name: "RAG Optimizer"
   description: "RAG pipeline optimization benchmark. Agents resolve pricing conflicts, route metadata tags, and splinter monolithic content blobs."
@@ -12,17 +13,23 @@ tasks:
   - id: easy
     name: "Conflict Resolution"
     description: "Resolve overlapping pricing parameters by deleting the legacy pricing format."
-    reward_range: [0.1, 0.99]
+    reward_range: [0.01, 0.99]
     grader: "rag_optimizer.server.grader:grade_easy"
   - id: medium
-    name: "Ontological Tagging"
-    description: "Route exact programmatic metadata tags to support tickets."
-    reward_range: [0.1, 0.99]
+    name: "Signal Separation"
+    description: >
+      Multi-doc deduplication. KB contains 3 overlapping incident reports
+      for the same outage - one raw, one partial, one with the correct
+      resolution - plus 20 engineering distractors. Agent must delete the
+      noisy duplicates so retrieval surfaces the clean resolution doc at
+      rank 1. Reward improves continuously as noise is removed; no binary
+      metadata gate.
+    reward_range: [0.01, 0.99]
     grader: "rag_optimizer.server.grader:grade_medium"
   - id: hard
     name: "Syntactic Splintering"
     description: "Break down the monolithic onboarding blob into multiple granular chunks."
-    reward_range: [0.1, 0.99]
+    reward_range: [0.01, 0.99]
     grader: "rag_optimizer.server.grader:grade_hard"
 agent:
   inference_entrypoint: "inference.py"

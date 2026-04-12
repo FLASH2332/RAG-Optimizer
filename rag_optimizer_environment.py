@@ -119,7 +119,7 @@ class RagOptimizerEnvironment(Environment):
     def _evaluate_kb(self) -> float:
         """The Grader: Evaluates the agent's current KB using TF-IDF."""
         if not self.kb:
-            return 0.0
+            return 0.01
             
         doc_texts = [doc["text"] for doc in self.kb.values()]
         
@@ -127,7 +127,7 @@ class RagOptimizerEnvironment(Environment):
         try:
             doc_vectors = vectorizer.fit_transform(doc_texts)
         except ValueError:
-            return 0.0
+            return 0.01
             
         score = 0.0
         
@@ -147,14 +147,14 @@ class RagOptimizerEnvironment(Environment):
             if found:
                 score += 1.0
                 
-        return float(score / len(self.test_suite))
+        return max(0.01, min(0.99, float(score / len(self.test_suite))))
 
     def step(self, action: RagOptimizerAction) -> RagOptimizerObservation:  # type: ignore[override]
         self._state.step_count += 1
         
         msg = ""
         done = False
-        reward = 0.0
+        reward = 0.01
         
         try:
             if action.action_type == "read_document":

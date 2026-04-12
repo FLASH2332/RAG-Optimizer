@@ -41,7 +41,7 @@ SYSTEM_PROMPT = """You are an automated Data Engineer managing an AI Knowledge B
 Your goal is to optimize the messy chunks of text in the database so that a TF-IDF Search Algorithm can find answers easily.
 You must resolve contradictions, categorize documents, and delete unnecessary documents.
 
-After each action you will receive a "current_reward" score (0.0 to 1.0) indicating how well the KB currently performs. Use this to guide your strategy.
+After each action you will receive a "current_reward" score (0.01 to 0.99) indicating how well the KB currently performs. Use this to guide your strategy.
 
 You have the following actions:
 - {"action_type": "read_document", "doc_id": "..."}

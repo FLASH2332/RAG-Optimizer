@@ -58,5 +58,5 @@ class RagOptimizerObservation(BaseModel):
     
     # Required OpenEnv standard fields
     done: bool = Field(False, description="Whether the episode has finished.")
-    reward: float = Field(0.0, description="The reward obtained from the last step.")
+    reward: float = Field(0.01, description="The reward obtained from the last step.")
     metadata: Dict = Field(default_factory=dict, description="Additional optional information.")

@@ -69,9 +69,30 @@ class RagOptimizerEnvironment(Environment):
             ]
             
         elif task_id == "medium":
+            self.kb = {
+                "doc_incident_raw": {
+                    "text": "User reported frontend button missing. Database latency also flagged. No fix yet.",
+                    "metadata": {}
+                },
+                "doc_incident_partial": {
+                    "text": "Button issue and DB latency investigated. CSS fix attempted. Email 401 error also reported.",
+                    "metadata": {}
+                },
+                "doc_incident_resolved": {
+                    "text": "Frontend button restored by updating CSS stylesheet. Email 401 resolved after API key rotation on Tuesday.",
+                    "metadata": {}
+                },
+            }
+            for i in range(20):
+                self.kb[f"doc_distractor_eng_{i}"] = {
+                    "text": f"Architecture decision {i}: chose Postgres for horizontal scaling.",
+                    "metadata": {}
+                }
             self.test_suite = [
-                {"query": "Cargo transport vehicle replacement timeline", "target_concept": "replaced by Dragon 2", "required_metadata_key": "class", "required_metadata_value": "cargo"},
-                {"query": "Thrust components for returning boosters", "target_concept": "SpaceX Merlin engines", "required_metadata_key": "class", "required_metadata_value": "booster"}
+                {"query": "How was the missing UI element fixed?",
+                 "target_concept": "updating CSS stylesheet"},
+                {"query": "What caused the authentication failure?",
+                 "target_concept": "API key rotation on Tuesday"},
             ]
             
         elif task_id == "hard":
@@ -118,7 +139,7 @@ class RagOptimizerEnvironment(Environment):
     def _evaluate_kb(self) -> float:
         """The Grader: Evaluates the current KB using Hybrid RRF (BM25 + Semantic MRR)."""
         if not self.kb or not self.test_suite:
-            return 0.0
+            return 0.01
             
         doc_ids = list(self.kb.keys())
         doc_texts = [(self.kb[d]["text"] + " " + " ".join(self.kb[d]["metadata"].values())).strip() for d in doc_ids]
@@ -180,14 +201,14 @@ class RagOptimizerEnvironment(Environment):
         # Step Cost Penalty calculation (-0.01 per step)
         cost_penalty = self._state.step_count * 0.01
         
-        return max(0.0, base_reward - cost_penalty)
+        return max(0.01, min(0.99, base_reward - cost_penalty))
 
     def step(self, action: RagOptimizerAction) -> RagOptimizerObservation:  # type: ignore[override]
         self._state.step_count += 1
         
         msg = ""
         done = False
-        reward = 0.0
+        reward = 0.01
         
         try:
             if action.action_type == "read_document":
