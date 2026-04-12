@@ -69,37 +69,44 @@ class RagOptimizerEnvironment(Environment):
             ]
             
         elif task_id == "medium":
-            self.kb = {
-                "doc_incident_raw": {
-                    "text": "User reported frontend button missing. Database latency also flagged. No fix yet.",
-                    "metadata": {}
-                },
-                "doc_incident_partial": {
-                    "text": "Button issue and DB latency investigated. CSS fix attempted. Email 401 error also reported.",
-                    "metadata": {}
-                },
-                "doc_incident_resolved": {
-                    "text": "Frontend button restored by updating CSS stylesheet. Email 401 resolved after API key rotation on Tuesday.",
-                    "metadata": {}
-                },
-            }
-            for i in range(20):
-                self.kb[f"doc_distractor_eng_{i}"] = {
-                    "text": f"Architecture decision {i}: chose Postgres for horizontal scaling.",
-                    "metadata": {}
-                }
-            self.test_suite = [
-                {"query": "How was the missing UI element fixed?",
-                 "target_concept": "updating CSS stylesheet"},
-                {"query": "What caused the authentication failure?",
-                 "target_concept": "API key rotation on Tuesday"},
-            ]
-            
-        elif task_id == "hard":
+            self.kb = deepcopy(self.seed_data["hard"])
             self.test_suite = [
                 {"query": "Which entity bankruptcy was the climax of the disaster?", "target_concept": "bankruptcy of Lehman Brothers"},
                 {"query": "What types of collateralized assets lost their worth?", "target_concept": "Mortgage-backed securities"},
                 {"query": "Who did predatory lenders primarily go after?", "target_concept": "low-income homebuyers"}
+            ]
+
+        elif task_id == "hard":
+            self.kb = {
+                # v1 — legacy, wrong routing syntax, poisons retrieval rank for v3
+                "fastapi_routing_v1": {
+                    "text": "FastAPI routing uses @app.route() decorator similar to Flask. Define routes with methods=['GET','POST']. Pydantic v1 handles all schema validation.",
+                    "metadata": {"version": "legacy"}
+                },
+                # v2 — also legacy, still wrong syntax, further dilutes correct doc
+                "fastapi_routing_v2": {
+                    "text": "FastAPI routes are defined using @app.route() with type hints added. Validation is done through Pydantic v1 models attached to each endpoint.",
+                    "metadata": {"version": "legacy"}
+                },
+                # v3 — CORRECT current doc, must survive and rank #1 after purge
+                "fastapi_routing_v3": {
+                    "text": "FastAPI uses @app.get(), @app.post() and other HTTP method decorators for routing. It defaults to Pydantic v2 for request and response validation.",
+                    "metadata": {"version": "current"}
+                },
+            }
+            # 15 generic distractors — low semantic overlap, provide ranking noise
+            for i in range(15):
+                self.kb[f"doc_distractor_{i}"] = {
+                    "text": f"General web framework note {i}: always use async handlers for better throughput in high-traffic services.",
+                    "metadata": {}
+                }
+            self.test_suite = [
+                # v1 and v2 both contain @app.route() which competes semantically with v3
+                # Deleting v1 and v2 pushes v3 to rank 1 → each delete gives a visible reward jump
+                {"query": "How are routes defined in FastAPI?",
+                 "target_concept": "@app.get(), @app.post() decorators"},
+                {"query": "Which Pydantic version does FastAPI v2 use by default?",
+                 "target_concept": "defaults to Pydantic v2"},
             ]
 
         self._rebuild_cache()

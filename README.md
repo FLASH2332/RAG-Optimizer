@@ -161,13 +161,13 @@ The environment tests agents across three progressively demanding task distribut
 **The Vector Issue:** The base contains heavily overlapping parameters (competing versions of legacy and modern timeline protocols).
 **System Goal:** Autonomously survey the semantic differences, deduce the temporal conflict, and execute `delete_document` sweeps to purge vector hallucination triggers.
 
-### Level II: Signal Separation
-**The Vector Issue:** The KB contains overlapping incident narratives mixed with distractor engineering notes, causing retrieval ambiguity.
-**System Goal:** Deduplicate noisy/partial incident content so retrieval consistently surfaces the clean resolution document at rank 1.
-
-### Level III: Syntactic Splintering (The Monolith)
+### Level II: Syntactic Splintering
 **The Vector Issue:** Extreme embedding decay caused by disparate conceptual structures compacted under a single referential document. This represents the well-known "PDF chunk wash-out" phenomenon.
 **System Goal:** Methodically `read` the extensive parent block, temporarily cache the semantic context limits, and utilize rapid consecutive `update_document` calls to mechanically splinter and redistribute the knowledge logic across multiple fine-grained nodes.
+
+### Level III: Duplicate Purge
+**The Vector Issue:** The KB contains overlapping FastAPI routing docs where legacy `@app.route()` guidance competes against the correct current `@app.get()` / `@app.post()` pattern with Pydantic v2.
+**System Goal:** Deduplicate legacy routing docs so retrieval consistently ranks the correct current routing reference at #1.
 
 ---
 

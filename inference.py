@@ -113,6 +113,40 @@ def _clamp_score(value: float) -> float:
     return value
 
 
+def _extract_json_object(text: str) -> dict:
+    """Extract a JSON object from model output that may include extra text."""
+    if not text:
+        raise ValueError("empty model response")
+
+    raw = text.strip()
+    try:
+        return json.loads(raw)
+    except Exception:
+        pass
+
+    # Common markdown fence wrapper
+    if "```" in raw:
+        parts = raw.split("```")
+        for part in parts:
+            candidate = part.strip()
+            if candidate.lower().startswith("json"):
+                candidate = candidate[4:].strip()
+            if candidate.startswith("{") and candidate.endswith("}"):
+                try:
+                    return json.loads(candidate)
+                except Exception:
+                    pass
+
+    # Fallback: take substring between first '{' and last '}'
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        candidate = raw[start:end + 1]
+        return json.loads(candidate)
+
+    raise ValueError("no JSON object found in model response")
+
+
 def run_task_episode(
     env: RagOptimizerEnvClient,
     llm_client: OpenAI,
@@ -156,14 +190,22 @@ def run_task_episode(
         error_msg = "null"
 
         try:
-            completion = llm_client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=messages,
-                response_format={"type": "json_object"},
-                max_tokens=1000,
-            )
+            try:
+                completion = llm_client.chat.completions.create(
+                    model=MODEL_NAME,
+                    messages=messages,
+                    response_format={"type": "json_object"},
+                    max_tokens=1000,
+                )
+            except Exception:
+                # Some OpenAI-compatible providers may not enforce response_format.
+                completion = llm_client.chat.completions.create(
+                    model=MODEL_NAME,
+                    messages=messages,
+                    max_tokens=1000,
+                )
             response_text = completion.choices[0].message.content or ""
-            action_data = json.loads(response_text)
+            action_data = _extract_json_object(response_text)
 
             # Normalize fields if model returns lists instead of strings
             for field in ("doc_id", "text", "metadata_key", "metadata_value"):

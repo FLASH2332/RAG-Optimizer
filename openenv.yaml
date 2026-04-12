@@ -11,24 +11,24 @@ environment:
     state: "/state/{session_id}"
 tasks:
   - id: easy
-    name: "Conflict Resolution"
-    description: "Resolve overlapping pricing parameters by deleting the legacy pricing format."
+    name: "Contamination Purging"
+    description: "Purge contradictory or low-value documents so retrieval surfaces clean, high-signal references."
     reward_range: [0.01, 0.99]
     grader: "rag_optimizer.server.grader:grade_easy"
   - id: medium
-    name: "Signal Separation"
-    description: >
-      Multi-doc deduplication. KB contains 3 overlapping incident reports
-      for the same outage - one raw, one partial, one with the correct
-      resolution - plus 20 engineering distractors. Agent must delete the
-      noisy duplicates so retrieval surfaces the clean resolution doc at
-      rank 1. Reward improves continuously as noise is removed; no binary
-      metadata gate.
+    name: "Syntactic Splintering"
+    description: "Break down the monolithic onboarding blob into multiple granular chunks."
     reward_range: [0.01, 0.99]
     grader: "rag_optimizer.server.grader:grade_medium"
   - id: hard
-    name: "Syntactic Splintering"
-    description: "Break down the monolithic onboarding blob into multiple granular chunks."
+    name: "Duplicate Purge"
+    description: >
+      Multi-doc deduplication for framework drift. KB contains 3 overlapping
+      FastAPI routing docs: two legacy variants with incorrect @app.route()
+      guidance and one correct current doc using @app.get()/@app.post() and
+      Pydantic v2, plus distractors. Agent must delete noisy legacy docs so
+      retrieval surfaces the correct current doc at rank 1. Reward improves
+      continuously as noise is removed; no binary metadata gate.
     reward_range: [0.01, 0.99]
     grader: "rag_optimizer.server.grader:grade_hard"
 agent:
