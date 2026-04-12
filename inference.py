@@ -65,6 +65,34 @@ def format_action_str(action: RagOptimizerAction) -> str:
         return "submit()"
     return f"{action.action_type}()"
 
+# --- Reflexion (Long Term Memory) ---
+LESSONS_FILE = os.path.join(os.path.dirname(__file__), "memory", "lessons_learned.json")
+
+def load_lessons():
+    if os.path.exists(LESSONS_FILE):
+        try:
+            with open(LESSONS_FILE, "r") as f:
+                return json.load(f)
+        except:
+            pass
+    return []
+
+def save_lesson(lesson_text, task_id):
+    os.makedirs(os.path.dirname(LESSONS_FILE), exist_ok=True)
+    lessons = load_lessons()
+    lessons.append({"task": task_id, "lesson": lesson_text})
+    with open(LESSONS_FILE, "w") as f:
+        json.dump(lessons, f, indent=2)
+
+def get_system_prompt():
+    prompt = SYSTEM_PROMPT
+    lessons = load_lessons()
+    if lessons:
+        prompt += "\n\nPAST LESSONS LEARNED (DO NOT REPEAT MISTAKES):\n"
+        for l in lessons[-5:]:  # Show only top 5 recent
+            prompt += f"- {l['lesson']}\n"
+    return prompt
+
 
 def _safe_reset(env: RagOptimizerEnvClient, task_id: str):
     """Reset env for a specific task with compatibility fallbacks."""
@@ -111,7 +139,7 @@ def run_task_episode(
             print(f"[END] success=false steps=0 score=0.01 rewards=")
             return
 
-    history = [{"role": "system", "content": SYSTEM_PROMPT}]
+    history = [{"role": "system", "content": get_system_prompt()}]
 
     init_obs = {
         "server_feedback": observation.message,
@@ -193,6 +221,23 @@ def run_task_episode(
     rewards_str = ",".join([f"{r:.2f}" for r in step_rewards])
     done_str = "true" if success else "false"
     print(f"[END] success={done_str} steps={step} score={score:.2f} rewards={rewards_str}")
+
+    # Memory Reflexion Trigger
+    if not success and score < 0.6:
+        # Agent failed, try to reflect
+        hist_str = json.dumps([m["content"] for m in history[-6:]])  # get last few actions/obs
+        ref_prompt = f"The agent failed task '{task_id}' with final reward {score}. Last context: {hist_str}. Write a 1-sentence tactical lesson stating explicitly what data engineering action the agent should have done instead."
+        try:
+            resp = llm_client.chat.completions.create(
+                model=MODEL_NAME, 
+                messages=[{"role": "user", "content": ref_prompt}], 
+                max_tokens=60
+            )
+            lesson = resp.choices[0].message.content.strip()
+            save_lesson(lesson, task_id)
+            print(f"[MEMORY] Learned lesson: {lesson}")
+        except:
+            pass
 
 def main():
     # Setup OpenAI Client

@@ -53,7 +53,7 @@ app = create_app(
 )
 
 
-def main(host: str = "0.0.0.0", port: int = 8002):
+def main(host: str = "0.0.0.0", port: int = 8000):
     """
     Entry point for direct execution via uv run or python -m.
 

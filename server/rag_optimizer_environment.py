@@ -16,10 +16,14 @@ from typing import Dict, Any, List
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
-# Import scikit-learn for our Grader
+# Import scikit-learn for our Grader (fallback/legacy)
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+
+# Hybrid Search imports
+from sentence_transformers import SentenceTransformer
+from rank_bm25 import BM25Okapi
 
 try:
     from models import RagOptimizerAction, RagOptimizerObservation
@@ -37,8 +41,10 @@ class RagOptimizerEnvironment(Environment):
 
     def __init__(self):
         self._state = State(episode_id=str(uuid4()), step_count=0)
+        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2') 
         self.kb = {}
         self.test_suite = []
+        self.dense_vectors = {}
         self._setup_task("easy")
         
     def _setup_task(self, task_id: str):
@@ -52,12 +58,16 @@ class RagOptimizerEnvironment(Environment):
                     "text": "Current Pricing 2024: Enterprise is $1500/mo. Standard is $750/mo. Refunds are not permitted on the enterprise tier.",
                     "metadata": {}
                 },
-                **{f"doc_distractor_random_{i}": {"text": f"Weekly team update notes. Nothing important here, just discussed the weather and the upcoming launch {i}.", "metadata":{}} for i in range(10)}
             }
+            # Add 20 random distractors
+            for i in range(20):
+                self.kb[f"doc_distractor_{i}"] = {"text": f"Weekly team update notes. Discussed the weather and the upcoming launch {i}.", "metadata":{}}
+
             self.test_suite = [
                 {"query": "What is the current 2024 price for standard?", "target_concept": "750/mo"},
                 {"query": "What is the refund policy for enterprise?", "target_concept": "Refunds are not permitted"}
             ]
+            
         elif task_id == "medium":
             self.kb = {
                 "doc_messy_support_ticket_1": {
@@ -68,31 +78,51 @@ class RagOptimizerEnvironment(Environment):
                     "text": "Email integration is failing with error 401 Unauthorized. The API key was rotated on Tuesday.",
                     "metadata": {}
                 },
-                **{f"doc_distractor_eng_{i}": {"text": f"Engineering architecture decision record {i}. We decided to use {['React', 'Postgres', 'Redis', 'Kafka'][i%4]} because of scaling concerns.", "metadata":{}} for i in range(10)}
             }
+            # Add 20 engineering distractors
+            for i in range(20):
+                self.kb[f"doc_distractor_eng_{i}"] = {"text": f"Engineering architecture decision record {i}. We decided to use Postgres because of scaling concerns.", "metadata":{}}
+
             self.test_suite = [
-                {"query": "UI issues frontend CSS missing button", "target_concept": "frontend team fixed the button"},
-                {"query": "Email integration 401", "target_concept": "API key was rotated"}
+                {"query": "UI rendering failure missing elements", "target_concept": "fixed the button by updating CSS", "required_metadata_key": "status", "required_metadata_value": "resolved"},
+                {"query": "Authentication rejection credentials", "target_concept": "API key was rotated", "required_metadata_key": "status", "required_metadata_value": "investigating"}
             ]
+            
         elif task_id == "hard":
             self.kb = {
-                "doc_shipping_policy": {
-                    "text": "All internal shipments to remote branch offices take 5-7 business days. Overnight shipping is only available for C-suite.",
-                    "metadata": {"department": "logistics"}
-                },
                 "doc_monolithic_onboarding": {
-                    "text": "Welcome to the company! Here are some rules. 1) VPN access requires DUO. 2) The cafetaria opens at 8 AM. 3) For HR issues, email hr@company.com. 4) The 2024 holiday schedule includes Dec 25, Jan 1, and July 4. 5) Parking passes must be renewed annually in March.",
+                    "text": "Welcome to the company! Here are some rules. 1) VPN access requires DUO. 2) The cafetaria opens at 8 AM. 3) For HR issues, email hr@company.com. 4) The 2024 holiday schedule includes Dec 25, Jan 1, and July 4. 5) Parking passes must be renewed annually in March. 6) All internal shipments to remote branch offices take 5-7 business days. Overnight shipping is only available for C-suite.",
                     "metadata": {}
-                },
-                **{f"doc_distractor_hr_{i}": {"text": f"This is an old HR policy document regarding {['pto', 'sick leave', 'travel', 'expenses'][i%4]} from 201{i%10}.", "metadata":{}} for i in range(10)}
+                }
             }
+            # Vector Poisoning: Add 50 adversarial distractors that mention "shipping", "holidays", "parking" but contain the WRONG semantic logic.
+            for i in range(25):
+                self.kb[f"adv_shipping_{i}"] = {"text": f"Shipping update {i}: We typically do not send to branch offices unless it takes 1-{i} days. Overnight is default.", "metadata":{}}
+                self.kb[f"adv_parking_{i}"] = {"text": f"Parking passes are usually handled in {['January', 'February', 'April', 'May'][i%4]}. Renewals {i} are manual.", "metadata":{}}
+
             self.test_suite = [
-                {"query": "How long does shipping take to branch offices?", "target_concept": "5-7 business days"},
-                {"query": "What months do parking passes need to be renewed?", "target_concept": "March"},
-                {"query": "What holidays are we off in 2024?", "target_concept": "July 4"}
+                {"query": "How long does logistics transit take to branch offices?", "target_concept": "5-7 business days"},
+                {"query": "When are vehicular parking permits processed?", "target_concept": "annually in March"},
+                {"query": "Which festive days are non-working?", "target_concept": "July 4"}
             ]
+            
         else:
             self._setup_task("easy")
+
+        self._rebuild_cache()
+
+    def _rebuild_cache(self):
+        """Called whenever KB documents are added, removed, or updated."""
+        if not self.kb:
+            self.dense_vectors = {}
+            return
+            
+        doc_ids = list(self.kb.keys())
+        # Append metadata to text for embedding
+        doc_texts = [(self.kb[d]["text"] + " " + " ".join(self.kb[d]["metadata"].values())).strip() for d in doc_ids]
+        
+        vectors = self.embedding_model.encode(doc_texts, convert_to_tensor=False)
+        self.dense_vectors = {doc_id: vectors[i] for i, doc_id in enumerate(doc_ids)}
 
     def _get_kb_summary(self) -> Dict[str, Dict]:
         """Returns a summary of the KB for the observation."""
@@ -114,37 +144,71 @@ class RagOptimizerEnvironment(Environment):
         )
 
     def _evaluate_kb(self) -> float:
-        """The Grader: Evaluates the agent's current KB using TF-IDF."""
-        if not self.kb:
+        """The Grader: Evaluates the current KB using Hybrid RRF (BM25 + Semantic MRR)."""
+        if not self.kb or not self.test_suite:
             return 0.0
             
-        doc_texts = [doc["text"] for doc in self.kb.values()]
+        doc_ids = list(self.kb.keys())
+        doc_texts = [(self.kb[d]["text"] + " " + " ".join(self.kb[d]["metadata"].values())).strip() for d in doc_ids]
         
-        vectorizer = TfidfVectorizer(stop_words='english')
-        try:
-            doc_vectors = vectorizer.fit_transform(doc_texts)
-        except ValueError:
-            return 0.0
-            
-        score = 0.0
+        # 1. BM25 Corpus Preparation
+        tokenized_corpus = [doc.lower().split() for doc in doc_texts]
+        bm25 = BM25Okapi(tokenized_corpus)
+        
+        # 2. Dense Matrix
+        doc_vectors = np.array([self.dense_vectors[d] for d in doc_ids])
+        
+        mrr_sum = 0.0
         
         for case in self.test_suite:
-            query_vec = vectorizer.transform([case["query"]])
-            similarities = cosine_similarity(query_vec, doc_vectors)[0]
+            # BM25 Search
+            tokenized_query = case["query"].lower().split()
+            bm25_scores = bm25.get_scores(tokenized_query)
+            bm25_ranks = bm25_scores.argsort()[::-1]
             
-            # Get top 3
-            top_k_indices = similarities.argsort()[-3:][::-1]
+            # Dense Search
+            query_vec = self.embedding_model.encode(case["query"])
+            dense_scores = cosine_similarity([query_vec], doc_vectors)[0]
+            dense_ranks = dense_scores.argsort()[::-1]
             
-            found = False
-            for idx in top_k_indices:
-                if similarities[idx] > 0.01:
-                    if case["target_concept"].lower() in doc_texts[idx].lower():
-                        found = True
-                        break
-            if found:
-                score += 1.0
+            # Reciprocal Rank Fusion (RRF)
+            rrf_scores = {d: 0.0 for d in doc_ids}
+            k = 60
+            for rank, idx in enumerate(bm25_ranks):
+                rrf_scores[doc_ids[idx]] += 1.0 / (k + rank + 1)
+            for rank, idx in enumerate(dense_ranks):
+                rrf_scores[doc_ids[idx]] += 1.0 / (k + rank + 1)
                 
-        return float(score / len(self.test_suite))
+            # Grade Top-K fused list using MRR
+            ranked_doc_ids = sorted(rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True)
+            
+            req_meta = case.get("required_metadata_key")
+            req_meta_val = case.get("required_metadata_value")
+            
+            case_mrr = 0.0
+            for i, doc_id in enumerate(ranked_doc_ids):
+                # Is this the true doc?
+                doc_text = self.kb[doc_id]["text"].lower()
+                if case["target_concept"].lower() in doc_text:
+                    valid = True
+                    
+                    # Medium Task Semantic Check
+                    if req_meta and req_meta_val:
+                        if self.kb[doc_id]["metadata"].get(req_meta) != req_meta_val:
+                            valid = False
+                            
+                    if valid:
+                        case_mrr = 1.0 / (i + 1)  # MRR formula starts at rank 1
+                        break
+            
+            mrr_sum += case_mrr
+            
+        base_reward = float(mrr_sum / len(self.test_suite))
+        
+        # Step Cost Penalty calculation (-0.01 per step)
+        cost_penalty = self._state.step_count * 0.01
+        
+        return max(0.0, base_reward - cost_penalty)
 
     def step(self, action: RagOptimizerAction) -> RagOptimizerObservation:  # type: ignore[override]
         self._state.step_count += 1
@@ -163,6 +227,7 @@ class RagOptimizerEnvironment(Environment):
             elif action.action_type == "delete_document":
                 if action.doc_id in self.kb:
                     del self.kb[action.doc_id]
+                    self._rebuild_cache()
                     msg = f"Deleted {action.doc_id}."
                 else:
                     msg = f"Error: doc_id {action.doc_id} not found."
@@ -174,6 +239,7 @@ class RagOptimizerEnvironment(Environment):
                     if action.doc_id not in self.kb:
                         self.kb[action.doc_id] = {"text": "", "metadata": {}}
                     self.kb[action.doc_id]["text"] = action.text
+                    self._rebuild_cache()
                     msg = f"Updated text for {action.doc_id}."
                     
             elif action.action_type == "add_metadata":
@@ -184,6 +250,7 @@ class RagOptimizerEnvironment(Environment):
                         msg = f"Error: doc_id {action.doc_id} not found."
                     else:
                         self.kb[action.doc_id]["metadata"][action.metadata_key] = action.metadata_value
+                        self._rebuild_cache()
                         msg = f"Added metadata to {action.doc_id}."
                         
             elif action.action_type == "submit":
