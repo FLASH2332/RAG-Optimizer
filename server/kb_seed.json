@@ -1,0 +1,161 @@
+{
+    "easy": {
+        "fastapi_1": {
+            "text": "FastAPI is a modern Python web framework designed for building APIs with high performance. It leverages Python type hints and integrates tightly with validation libraries. One of its key strengths is that it defaults to Pydantic v2, enabling efficient data parsing and validation with minimal boilerplate. Developers can define request and response models clearly, ensuring correctness. FastAPI also supports asynchronous programming using async and await, making it ideal for I/O-bound services. Its automatic OpenAPI schema generation provides interactive API documentation out of the box, improving developer productivity.",
+            "metadata": {
+                "topic": "fastapi",
+                "type": "useful"
+            }
+        },
+        "fastapi_2": {
+            "text": "FastAPI includes a powerful dependency injection system that allows developers to manage shared logic such as authentication, database sessions, and configuration in a clean and reusable way. Dependencies can be declared at different levels, including routes and entire applications. This feature reduces duplication and improves maintainability. The framework also supports async database calls, ensuring efficient resource usage. By combining dependency injection with type hints, FastAPI ensures that applications remain scalable and structured, making it a preferred choice for production-grade microservices.",
+            "metadata": {
+                "topic": "fastapi"
+            }
+        },
+        "fastapi_3": {
+            "text": "FastAPI supports WebSocket communication, enabling real-time features such as chat applications, live dashboards, and streaming data pipelines. Unlike traditional HTTP request-response cycles, WebSockets maintain persistent connections. FastAPI provides simple decorators to define WebSocket endpoints and manage connections efficiently. Combined with async support, this allows handling thousands of concurrent connections. Developers can integrate WebSockets alongside REST endpoints in the same application, making FastAPI highly versatile for both synchronous and real-time applications.",
+            "metadata": {
+                "topic": "fastapi"
+            }
+        },
+        "fastapi_4": {
+            "text": "Running FastAPI applications in production typically involves using ASGI servers such as Uvicorn. A common command used is uvicorn main:app --workers 4, which starts multiple worker processes for handling concurrent requests. This setup improves performance and scalability. FastAPI is designed around ASGI, allowing it to fully utilize asynchronous capabilities. With proper configuration, it can handle high throughput while maintaining low latency, making it suitable for APIs serving large-scale applications.",
+            "metadata": {
+                "topic": "fastapi"
+            }
+        },
+        "fastapi_5": {
+            "text": "FastAPI automatically generates interactive documentation using Swagger UI and ReDoc. This feature is powered by OpenAPI standards and provides developers with a convenient way to test endpoints directly from the browser. The documentation reflects the actual codebase, ensuring accuracy. By leveraging type annotations, FastAPI produces clear schemas for requests and responses. This reduces manual documentation effort and improves collaboration between frontend and backend teams.",
+            "metadata": {
+                "topic": "fastapi"
+            }
+        },
+        "fastapi_6": {
+            "text": "FastAPI emphasizes performance comparable to Node.js and Go by utilizing asynchronous programming and efficient serialization. It uses Starlette under the hood, which provides high-speed routing and middleware support. Developers can create middleware for logging, authentication, and caching. FastAPI also integrates seamlessly with ORMs and external services. Its performance benefits make it suitable for modern cloud-native applications.",
+            "metadata": {
+                "topic": "fastapi"
+            }
+        },
+        "fastapi_7": {
+            "text": "FastAPI simplifies request validation using Python type hints. When defining endpoints, developers specify expected input types, and FastAPI automatically validates incoming requests. Errors are returned in a structured format, helping developers debug quickly. This reduces the need for manual validation logic. Combined with automatic serialization, FastAPI ensures consistency and reliability across APIs.",
+            "metadata": {
+                "topic": "fastapi"
+            }
+        },
+        "fastapi_8": {
+            "text": "FastAPI integrates well with modern Python ecosystems, including async frameworks, ORMs, and testing tools. It supports dependency overrides, which are useful during testing. Developers can simulate database connections or authentication systems easily. This makes writing unit and integration tests straightforward. The framework encourages clean architecture and modular design.",
+            "metadata": {
+                "topic": "fastapi"
+            }
+        },
+        "fastapi_9": {
+            "text": "FastAPI allows developers to define background tasks that run after returning a response. This is useful for sending emails, logging events, or processing data asynchronously. The background task system is lightweight and easy to use. It helps improve response times while handling additional processing efficiently.",
+            "metadata": {
+                "topic": "fastapi"
+            }
+        },
+        "fastapi_10": {
+            "text": "FastAPI supports security features such as OAuth2, API keys, and JWT authentication. It provides built-in utilities for implementing authentication flows. These features integrate seamlessly with dependency injection, allowing secure endpoints to be defined easily. This makes FastAPI suitable for building secure APIs.",
+            "metadata": {
+                "topic": "fastapi"
+            }
+        },
+        "distractor_1": {
+            "text": "Django is a high-level Python web framework that follows the Model-View-Template pattern. It provides an ORM for database interactions and includes built-in features such as authentication, admin panels, and form handling. Django is known for its batteries-included philosophy, allowing developers to build full-stack applications quickly. It is widely used for monolithic applications and supports scalability through modular apps.",
+            "metadata": {
+                "topic": "distractor"
+            }
+        },
+        "distractor_2": {
+            "text": "Flask is a lightweight Python web framework designed for simplicity and flexibility. Unlike Django, it does not include many built-in components, giving developers more control. Flask uses extensions to add functionality such as database integration and authentication. It is ideal for small projects and microservices.",
+            "metadata": {
+                "topic": "distractor"
+            }
+        },
+        "distractor_3": {
+            "text": "Express.js is a popular web framework for Node.js that simplifies building server-side applications. It provides routing, middleware support, and integration with databases. Express is widely used for building REST APIs and full-stack applications using JavaScript. Its minimal design allows developers to structure applications as needed.",
+            "metadata": {
+                "topic": "distractor"
+            }
+        },
+        "distractor_4": {
+            "text": "React is a JavaScript library for building user interfaces. It uses a component-based architecture and virtual DOM for efficient rendering. React is commonly used for frontend development and can be integrated with backend APIs. It supports state management and hooks for managing component lifecycle.",
+            "metadata": {
+                "topic": "distractor"
+            }
+        },
+        "distractor_5": {
+            "text": "Ruby on Rails is a web application framework that emphasizes convention over configuration. It provides a full-stack solution with built-in tools for database management, routing, and views. Rails is known for rapid development and clean code structure.",
+            "metadata": {
+                "topic": "distractor"
+            }
+        },
+        "distractor_6": {
+            "text": "Angular is a frontend framework developed by Google. It uses TypeScript and provides tools for building large-scale applications. Angular includes dependency injection, routing, and state management.",
+            "metadata": {
+                "topic": "distractor"
+            }
+        },
+        "distractor_7": {
+            "text": "Laravel is a PHP framework that simplifies web development with features like routing, authentication, and database migrations. It is widely used for building scalable web applications.",
+            "metadata": {
+                "topic": "distractor"
+            }
+        },
+        "distractor_8": {
+            "text": "Spring Boot is a Java-based framework for building enterprise applications. It simplifies configuration and provides tools for building REST APIs and microservices.",
+            "metadata": {
+                "topic": "distractor"
+            }
+        },
+        "distractor_9": {
+            "text": "Vue.js is a progressive JavaScript framework for building user interfaces. It focuses on simplicity and flexibility, making it easy to integrate into projects.",
+            "metadata": {
+                "topic": "distractor"
+            }
+        },
+        "distractor_10": {
+            "text": "ASP.NET Core is a cross-platform framework for building web applications using C#. It supports MVC architecture and integrates with Microsoft technologies.",
+            "metadata": {
+                "topic": "distractor"
+            }
+        }
+    },
+    "medium": {
+        "falcon9": {
+            "text": "Falcon 9 is a reusable rocket developed by SpaceX for transporting payloads to orbit. It uses SpaceX Merlin engines, which are designed for efficiency and reusability. The first stage can land vertically after launch, significantly reducing costs. Falcon 9 has been used for satellite deployments, cargo missions, and crewed flights to the International Space Station. Its reliability and cost-effectiveness have made it a cornerstone of modern space exploration.",
+            "metadata": {}
+        },
+        "dragon": {
+            "text": "The Dragon spacecraft developed by SpaceX is used for cargo and crew transport. The original Dragon capsule was replaced by Dragon 2, which includes advanced life-support systems and autonomous docking capabilities. Dragon has been used extensively for resupply missions to the International Space Station and has enabled private spaceflight.",
+            "metadata": {}
+        },
+        "starship": {
+            "text": "Starship is a fully reusable spacecraft designed by SpaceX for deep space missions. It aims to transport humans to Mars and beyond. The system includes a booster and spacecraft, both reusable. Starship is powered by Raptor engines and is designed for rapid turnaround.",
+            "metadata": {}
+        },
+        "distractor_1": {
+            "text": "Deep sea exploration involves studying ocean depths using submersibles and remote-operated vehicles. Scientists investigate marine ecosystems and geological formations.",
+            "metadata": {}
+        }
+    },
+    "hard": {
+        "crisis_monolith": {
+            "text": "The 2008 financial crisis was one of the most severe economic downturns since the Great Depression. It was triggered by the collapse of the housing market and widespread use of Mortgage-backed securities. Financial institutions had heavily invested in subprime mortgages, which were loans given to low-income homebuyers with poor credit histories. As housing prices declined, these borrowers began defaulting, leading to massive losses. The bankruptcy of Lehman Brothers marked a critical moment, causing panic across global markets. Complex financial instruments such as CDOs amplified risk, spreading it throughout the system. Governments intervened with bailouts, including the TARP program, to stabilize banks. Central banks implemented quantitative easing to inject liquidity into the economy. The crisis exposed weaknesses in financial regulation and led to reforms such as the Dodd-Frank Act. It also highlighted the dangers of excessive leverage and lack of transparency in financial markets.",
+            "metadata": {}
+        },
+        "tarp": {
+            "text": "The Troubled Asset Relief Program was introduced to stabilize financial institutions during the crisis. It allowed the government to purchase toxic assets and inject capital into banks.",
+            "metadata": {}
+        },
+        "qe": {
+            "text": "Quantitative easing was used by central banks to increase liquidity by purchasing government securities and lowering interest rates.",
+            "metadata": {}
+        },
+        "noise_1": {
+            "text": "During the 1920s, financial markets experienced rapid growth followed by a crash. Speculative investments and excessive leverage contributed to economic instability.",
+            "metadata": {}
+        }
+    }
+}

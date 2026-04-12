@@ -45,69 +45,41 @@ class RagOptimizerEnvironment(Environment):
         self.kb = {}
         self.test_suite = []
         self.dense_vectors = {}
+        
+        # Load the Real World Datasets
+        import json
+        import os
+        seed_path = os.path.join(os.path.dirname(__file__), "kb_seed.json")
+        with open(seed_path, "r") as f:
+            self.seed_data = json.load(f)
+            
         self._setup_task("easy")
         
     def _setup_task(self, task_id: str):
+        if task_id not in ["easy", "medium", "hard"]:
+            task_id = "easy"
+            
+        # Clone the fresh dataset from seed so the agent can destroy it
+        self.kb = deepcopy(self.seed_data[task_id])
+        
         if task_id == "easy":
-            self.kb = {
-                "doc_pricing_legacy": {
-                    "text": "Pricing for 2021: Enterprise tier is $1000/mo. Standard is $500/mo. All plans include 10 users.",
-                    "metadata": {"type": "pricing"}
-                },
-                "doc_pricing_current_v2": {
-                    "text": "Current Pricing 2024: Enterprise is $1500/mo. Standard is $750/mo. Refunds are not permitted on the enterprise tier.",
-                    "metadata": {}
-                },
-            }
-            # Add 20 random distractors
-            for i in range(20):
-                self.kb[f"doc_distractor_{i}"] = {"text": f"Weekly team update notes. Discussed the weather and the upcoming launch {i}.", "metadata":{}}
-
             self.test_suite = [
-                {"query": "What is the current 2024 price for standard?", "target_concept": "750/mo"},
-                {"query": "What is the refund policy for enterprise?", "target_concept": "Refunds are not permitted"}
+                {"query": "How do I run the server in production with concurrency?", "target_concept": "uvicorn main:app --workers 4"},
+                {"query": "Which version of Pydantic does FastAPI use by default?", "target_concept": "defaults to Pydantic v2"}
             ]
             
         elif task_id == "medium":
-            self.kb = {
-                "doc_messy_support_ticket_1": {
-                    "text": "User complained the button disappeared on the frontend. Another user said the database latency was high. The frontend team fixed the button by updating CSS.",
-                    "metadata": {}
-                },
-                "doc_messy_support_ticket_2": {
-                    "text": "Email integration is failing with error 401 Unauthorized. The API key was rotated on Tuesday.",
-                    "metadata": {}
-                },
-            }
-            # Add 20 engineering distractors
-            for i in range(20):
-                self.kb[f"doc_distractor_eng_{i}"] = {"text": f"Engineering architecture decision record {i}. We decided to use Postgres because of scaling concerns.", "metadata":{}}
-
             self.test_suite = [
-                {"query": "UI rendering failure missing elements", "target_concept": "fixed the button by updating CSS", "required_metadata_key": "status", "required_metadata_value": "resolved"},
-                {"query": "Authentication rejection credentials", "target_concept": "API key was rotated", "required_metadata_key": "status", "required_metadata_value": "investigating"}
+                {"query": "Cargo transport vehicle replacement timeline", "target_concept": "replaced by Dragon 2", "required_metadata_key": "class", "required_metadata_value": "cargo"},
+                {"query": "Thrust components for returning boosters", "target_concept": "SpaceX Merlin engines", "required_metadata_key": "class", "required_metadata_value": "booster"}
             ]
             
         elif task_id == "hard":
-            self.kb = {
-                "doc_monolithic_onboarding": {
-                    "text": "Welcome to the company! Here are some rules. 1) VPN access requires DUO. 2) The cafetaria opens at 8 AM. 3) For HR issues, email hr@company.com. 4) The 2024 holiday schedule includes Dec 25, Jan 1, and July 4. 5) Parking passes must be renewed annually in March. 6) All internal shipments to remote branch offices take 5-7 business days. Overnight shipping is only available for C-suite.",
-                    "metadata": {}
-                }
-            }
-            # Vector Poisoning: Add 50 adversarial distractors that mention "shipping", "holidays", "parking" but contain the WRONG semantic logic.
-            for i in range(25):
-                self.kb[f"adv_shipping_{i}"] = {"text": f"Shipping update {i}: We typically do not send to branch offices unless it takes 1-{i} days. Overnight is default.", "metadata":{}}
-                self.kb[f"adv_parking_{i}"] = {"text": f"Parking passes are usually handled in {['January', 'February', 'April', 'May'][i%4]}. Renewals {i} are manual.", "metadata":{}}
-
             self.test_suite = [
-                {"query": "How long does logistics transit take to branch offices?", "target_concept": "5-7 business days"},
-                {"query": "When are vehicular parking permits processed?", "target_concept": "annually in March"},
-                {"query": "Which festive days are non-working?", "target_concept": "July 4"}
+                {"query": "Which entity bankruptcy was the climax of the disaster?", "target_concept": "bankruptcy of Lehman Brothers"},
+                {"query": "What types of collateralized assets lost their worth?", "target_concept": "Mortgage-backed securities"},
+                {"query": "Who did predatory lenders primarily go after?", "target_concept": "low-income homebuyers"}
             ]
-            
-        else:
-            self._setup_task("easy")
 
         self._rebuild_cache()
 
