@@ -38,7 +38,7 @@ tags:
 
 **DATA ENGINEERING & AI INFRASTRUCTURE**
 
-RagOptimizerEnv simulates the critical and computationally intensive role of an AI Data Engineer. The environment forces an autonomous agent to resolve conflicting semantic documentation, heuristically categorize disjointed metadata, and structurally splinter monolithic text corpora to prevent embedding decay within a Retrieval-Augmented Generation (RAG) pipeline.
+RagOptimizerEnv simulates the critical and computationally intensive role of an AI Data Engineer. The environment forces an autonomous agent to resolve conflicting semantic documentation, heuristically deduplicate incident reports, and structurally splinter monolithic text corpora to prevent embedding decay within a hybrid Retrieval-Augmented Generation (RAG) pipeline.
 
 <br>
 <p align="center">
@@ -54,13 +54,15 @@ To resolve this, human data engineers must navigate the database, read dense arc
 
 ## The Proposed Solution
 
-We present an OpenEnv RL environment featuring an embedded, deterministic `scikit-learn` continuous Grader. The environment vectorizes the current database state after every single agent action, evaluating the structural integrity of the Knowledge Base in real-time. This provides a continuous reward density mapping—grading the agent purely on whether its structural operations inherently improved the theoretical Recall@3 limit of a downstream similarity search algorithm.
+## The Proposed Solution
+
+We present an OpenEnv RL environment featuring an embedded, deterministic continuous Grader. The environment vectorizes the current database state after every single agent action using a Hybrid Search architecture (BM25 + Dense Semantic Embeddings). This provides a continuous reward density mapping—grading the agent purely on whether its structural operations inherently improved the theoretical Rank Fusion metrics of a downstream retrieval pipeline.
 
 ---
 
 ## Technical Novelty
 
-- **Continuous Deterministic Grader:** Rather than relying on sparse terminal rewards, the environment maintains a live embedded `TfidfVectorizer`. It continuously restructures its internal sparse embedding matrix on every action step, calculating the cosine-similarity of hidden semantic payloads to supply dynamic gradient signals.
+- **Hybrid Reciprocal Rank Fusion (RRF) Grader:** Rather than relying on sparse terminal rewards or outdated TF-IDF vectors, the environment evaluates the topological space using state-of-the-art hybrid search. It fuses sparse BM25 arrays with deep semantic `SentenceTransformer` vectors, scoring the agent purely on genuine retrieval improvements (Mean Reciprocal Rank).
 - **Topological State Feedback:** The environment streams a live topological representation of the knowledge base schema back to the agent on every interaction. Providing the `doc_id` indices mapped to character `length` and structural `metadata` ensures that agents operate efficiently without hallucinating system state across long inference contexts.
 - **Dynamic Noise Mitigation:** The target corpus is embedded within an array of generated distractor documents designed to mathematically dilute the TF-IDF search space, testing the robust operational precision of deployed LLM agents.
 - **Multi-Step Deductive Curriculum:** Sub-tasks require agents to temporarily retain the historical context of prior operations to successfully coordinate complex restructurings, pushing agents beyond single-shot function calling.
@@ -116,13 +118,13 @@ Pydantic-typed JSON states returned immediately upon trajectory execution:
 
 Evaluation is robust, empirical, and mathematically bounded:
 
-1. **State Mutation:** The agent executes an array transaction within the topological space.
-2. **Re-Embedding:** The environment abstracts the updated schema into a standard English-corpus `TfidfVectorizer`.
+1. **State Mutation:** The agent executes a CRUD transaction within the topological space.
+2. **Re-Embedding:** The environment calculates real-time `SentenceTransformer` dense vectors and `BM25Okapi` sparse arrays for the mutated corpus.
 3. **Validation Probes:** The internal testing suite embeds an array of control queries targeting defined semantic concepts.
 4. **Retrieval Benchmark:** Sparse `cosine_similarity` calculates the topological displacement.
-5. **Score Allocation:** A hit is awarded conditionally if the modified Knowledge Base successfully forces the `target_concept` vector upward into the Top 3 search indices.
+5. **Score Allocation:** A hit is awarded conditionally if the modified Knowledge Base successfully forces the `target_concept` vector upward into the search indices.
 
-**Reward Yield:** `(Successful Vectors / Total Vector Payload)` providing high-density intermediate signals mapping continuously toward the `±1.0` upper bound.
+**Reward Yield:** The Grader calculates a **Mean Reciprocal Rank (MRR)** score. For each control query, it finds the rank (1st, 2nd, 30th) of the document containing the target concept and scores it as `1/rank`. The final reward is the average MRR minus a cumulative step-cost penalty (**-0.01 per action step**), strictly bounded between `0.01` and `0.99`. This forces the agent to optimize efficiency: mechanically moving a correct document from rank 10 to rank 2 grants a measurable math reward, but taking 50 steps to figure it out will severely decay the final score.
 
 ### Practical RAG FAQ (Important Clarifications)
 
@@ -153,27 +155,40 @@ In practice, this environment trains an agent to behave like a retrieval-focused
 
 ---
 
-## 4. Curriculum Topologies
+## 4. Task Difficulty Levels
 
 The environment tests agents across three progressively demanding task distributions mirroring production RAG degradation scenarios.
 
-### Level I: Contamination Purging
+### Easy: Conflict Resolution
 **The Vector Issue:** The base contains heavily overlapping parameters (competing versions of legacy and modern timeline protocols).
 **System Goal:** Autonomously survey the semantic differences, deduce the temporal conflict, and execute `delete_document` sweeps to purge vector hallucination triggers.
 
-### Level II: Signal Separation
+### Medium: Signal Separation
 **The Vector Issue:** The KB contains overlapping incident narratives mixed with distractor engineering notes, causing retrieval ambiguity.
 **System Goal:** Deduplicate noisy/partial incident content so retrieval consistently surfaces the clean resolution document at rank 1.
 
-### Level III: Syntactic Splintering (The Monolith)
+### Hard: Syntactic Splintering (The Monolith)
 **The Vector Issue:** Extreme embedding decay caused by disparate conceptual structures compacted under a single referential document. This represents the well-known "PDF chunk wash-out" phenomenon.
 **System Goal:** Methodically `read` the extensive parent block, temporarily cache the semantic context limits, and utilize rapid consecutive `update_document` calls to mechanically splinter and redistribute the knowledge logic across multiple fine-grained nodes.
 
 ---
 
-## 5. Inference Baseline Sandbox
+## 5. Dataset Generation & Provenance
 
-The root tree provides `inference.py`, a reference baseline executing an OpenAI-compliant autonomous data-engineering agent.
+In modern AI benchmark design, the origin of test data is paramount. The isolated baseline dictionary (`kb_seed.json`) is not pulled from raw internet scrapes, but is instead **synthetically engineered** using LLMs specifically for this benchmark. 
+
+- **Zero Data Leakage:** Synthesizing the data natively ensures that the exact target strings and topological traps cannot be accidentally memorized by frontier models during their pre-training phase on standard Wikipedia/GitHub scrapes.
+- **Vocabulary Mirroring (Adversarial Noise):** The distractors injected into each task level are purposefully generated to utilize the exact same specialized terms (e.g., *API Key*, *CSS*, *Lehman Brothers*) as the correct resolution documents. This mathematical noise ceiling brutally exposes agents relying purely on lexical keyword matching.
+- **Real-World Dimensionality:** The conceptual tasks (Tech Documentation, IT Outage Post-Mortems, Historical Financial Crises) were hand-selected to replicate the exact structural dimensions of real enterprise knowledge swamps.
+
+---
+
+## 6. Inference Baseline Sandbox
+
+The root tree provides `inference.py`, a reference baseline executing an OpenAI-compliant autonomous data-engineering agent. 
+
+### Persistent Reflexion Memory
+The baseline agent features a persistent learning loop. If the agent fails a mission (e.g., getting stuck in a noisy semantic local minima), it evaluates its own trajectory and writes a **reflexion lesson** into `memory/lessons_learned.json`. In future episodes, this lesson is dynamically injected into the agent's system prompt, mimicking a human data engineer learning the unique topological constraints of the local Knowledge Base over time.
 
 Telemetry formats strictly adhere to high-velocity logging required for large-scale evaluation pipelines:
 
