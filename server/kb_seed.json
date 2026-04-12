@@ -123,20 +123,96 @@
         }
     },
     "medium": {
-        "falcon9": {
-            "text": "Falcon 9 is a reusable rocket developed by SpaceX for transporting payloads to orbit. It uses SpaceX Merlin engines, which are designed for efficiency and reusability. The first stage can land vertically after launch, significantly reducing costs. Falcon 9 has been used for satellite deployments, cargo missions, and crewed flights to the International Space Station. Its reliability and cost-effectiveness have made it a cornerstone of modern space exploration.",
+        "doc_incident_raw": {
+            "text": "Initial incident report logged by the on-call engineer at 09:10 AM. Users are reporting that a critical frontend action button on the dashboard is missing entirely. The issue appears intermittent across sessions but is reproducible in staging. Alongside this, monitoring dashboards show elevated database latency, particularly on read-heavy endpoints. There is uncertainty whether these issues are related or coincidental. Some engineers suspect a rendering issue, while others believe degraded backend performance may be delaying UI state hydration. No mitigation has been applied yet. Logs show sporadic 401 errors on certain API endpoints, but it is unclear if this is connected. The incident has been escalated to both frontend and backend teams. Investigation is ongoing, and further updates will be provided as more data becomes available.",
             "metadata": {}
         },
-        "dragon": {
-            "text": "The Dragon spacecraft developed by SpaceX is used for cargo and crew transport. The original Dragon capsule was replaced by Dragon 2, which includes advanced life-support systems and autonomous docking capabilities. Dragon has been used extensively for resupply missions to the International Space Station and has enabled private spaceflight.",
+        "doc_incident_partial": {
+            "text": "Follow-up report after initial investigation. The frontend team attempted a quick fix by updating CSS rules related to button visibility, assuming a rendering regression. However, this did not resolve the missing button issue in production. Further debugging indicates that the button component is conditionally rendered based on an API response, which is occasionally failing. Backend logs show consistent 401 errors from an internal service endpoint. The backend team suspects that an expired API key might be causing authentication failures, leading to incomplete data being sent to the frontend. Database latency has slightly improved but is still above baseline. Teams are now focusing on authentication layers and service communication. No permanent fix has been deployed yet.",
             "metadata": {}
         },
-        "starship": {
-            "text": "Starship is a fully reusable spacecraft designed by SpaceX for deep space missions. It aims to transport humans to Mars and beyond. The system includes a booster and spacecraft, both reusable. Starship is powered by Raptor engines and is designed for rapid turnaround.",
+        "doc_incident_resolved": {
+            "text": "Final post-mortem of the production outage. The root cause was determined to be two independent but overlapping issues. The missing frontend button was caused by a regression in styling, which was resolved by updating CSS stylesheet rules that incorrectly hid the component under certain conditions. Separately, the 401 authentication errors were traced to an expired API key used by an internal service. This was resolved through API key rotation on Tuesday, restoring proper authentication flow. Once both fixes were deployed, system behavior returned to normal. Additional safeguards have been implemented, including monitoring for API key expiration and stricter validation of frontend rendering conditions. Teams have documented the incident and updated runbooks to prevent recurrence.",
             "metadata": {}
         },
-        "distractor_1": {
-            "text": "Deep sea exploration involves studying ocean depths using submersibles and remote-operated vehicles. Scientists investigate marine ecosystems and geological formations.",
+        "doc_eng_1": {
+            "text": "Architecture decision record discussing migration of frontend styling systems. The team evaluated moving from traditional CSS modules to a utility-first framework. During testing, inconsistencies were observed in how legacy components handled conditional rendering tied to API key permissions. Some endpoints returned 401 errors when tokens expired, which affected component visibility. The decision was to incrementally migrate styles while keeping backward compatibility. Engineers also noted that rotation policies for API keys should be standardized across services. This ADR highlights the importance of aligning frontend behavior with backend authentication systems.",
+            "metadata": {}
+        },
+        "doc_eng_2": {
+            "text": "Sprint planning notes for Q3 engineering cycle. The frontend team proposed improvements to UI consistency, including refactoring CSS classes and removing deprecated styles. Meanwhile, the backend team raised concerns about API key rotation policies, noting that expired keys had caused minor 401 errors in staging. The team agreed to prioritize monitoring improvements and better alerting mechanisms. No direct incidents were reported, but proactive measures were discussed to prevent future disruptions.",
+            "metadata": {}
+        },
+        "doc_eng_3": {
+            "text": "Git commit summary describing updates to authentication middleware. The change introduced stricter validation for API keys, rejecting requests with expired credentials. This led to an increase in 401 errors during testing, which was expected. The frontend team was notified to handle these errors gracefully. Additionally, minor CSS updates were included to improve button alignment across browsers. The commit emphasizes security improvements and better error handling.",
+            "metadata": {}
+        },
+        "doc_eng_4": {
+            "text": "Benchmark report analyzing frontend performance under load. Tests revealed that CSS rendering time increased slightly when large stylesheets were loaded. API key validation latency also contributed to overall response times. However, no critical failures were observed. Engineers recommended optimizing CSS delivery and caching API key validation results to reduce overhead.",
+            "metadata": {}
+        },
+        "doc_eng_5": {
+            "text": "Internal memo discussing API key lifecycle management. The document outlines best practices for rotation, including automated renewal and monitoring for expiration. It also highlights cases where expired keys caused 401 errors in non-critical services. Frontend teams are advised to display fallback UI elements when authentication fails.",
+            "metadata": {}
+        },
+        "doc_eng_6": {
+            "text": "Design document for a new frontend component library. The library standardizes CSS usage and ensures consistent styling across applications. It also integrates with backend authentication systems, handling API key validation states. Engineers noted that improper handling of 401 errors could lead to missing UI elements.",
+            "metadata": {}
+        },
+        "doc_eng_7": {
+            "text": "Post-deployment analysis of a minor release. The update included CSS refactoring and improvements to API key validation logic. Some users experienced temporary 401 errors due to delayed key rotation, but no major outages occurred. The team plans to improve synchronization between frontend and backend systems.",
+            "metadata": {}
+        },
+        "doc_eng_8": {
+            "text": "Engineering notes on improving observability. The team added logging for API key validation failures and CSS rendering issues. This helps identify cases where frontend components fail to display due to backend errors. Alerts are configured for repeated 401 errors.",
+            "metadata": {}
+        },
+        "doc_eng_9": {
+            "text": "Technical review of authentication flows. The system uses API keys for service-to-service communication. Engineers identified that inconsistent rotation schedules could lead to 401 errors. Frontend applications must handle these gracefully to avoid user confusion.",
+            "metadata": {}
+        },
+        "doc_eng_10": {
+            "text": "Frontend refactor proposal focusing on CSS modularization. The goal is to reduce conflicts between styles and improve maintainability. The proposal also includes handling API key-based feature flags, ensuring components render correctly even when authentication states change.",
+            "metadata": {}
+        },
+        "doc_eng_11": {
+            "text": "System reliability report highlighting minor incidents. Some services experienced 401 errors due to expired API keys. CSS updates were deployed to improve UI consistency. No major user impact was observed.",
+            "metadata": {}
+        },
+        "doc_eng_12": {
+            "text": "Developer onboarding guide explaining authentication mechanisms. New engineers are taught how API keys are generated, rotated, and validated. The guide also covers frontend error handling for 401 responses.",
+            "metadata": {}
+        },
+        "doc_eng_13": {
+            "text": "Performance optimization notes for frontend rendering. Engineers experimented with reducing CSS bundle sizes and improving load times. API key validation overhead was also analyzed.",
+            "metadata": {}
+        },
+        "doc_eng_14": {
+            "text": "Security audit report identifying risks in API key management. The audit found that some keys were not rotated regularly, leading to potential 401 errors. Recommendations include automated rotation and better monitoring.",
+            "metadata": {}
+        },
+        "doc_eng_15": {
+            "text": "Release notes for version 2.3. The update includes CSS fixes and improved API key validation. Some minor 401 errors were expected during rollout.",
+            "metadata": {}
+        },
+        "doc_eng_16": {
+            "text": "Backend architecture review discussing authentication services. API key validation is centralized, but frontend teams must handle errors properly. CSS-related UI issues were noted in previous releases.",
+            "metadata": {}
+        },
+        "doc_eng_17": {
+            "text": "Incident simulation exercise documenting response to API key expiration. Teams practiced handling 401 errors and updating frontend components. CSS adjustments were part of the simulation.",
+            "metadata": {}
+        },
+        "doc_eng_18": {
+            "text": "Code review feedback on frontend components. Reviewers noted inconsistent CSS usage and lack of error handling for API key failures. Improvements were suggested.",
+            "metadata": {}
+        },
+        "doc_eng_19": {
+            "text": "Infrastructure planning document for scaling authentication services. API key rotation policies are discussed, along with frontend implications of 401 errors.",
+            "metadata": {}
+        },
+        "doc_eng_20": {
+            "text": "QA testing report covering authentication and UI scenarios. Test cases include expired API keys, resulting in 401 errors, and CSS rendering issues affecting frontend components.",
             "metadata": {}
         }
     },
