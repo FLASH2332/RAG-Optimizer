@@ -42,7 +42,7 @@ RagOptimizerEnv simulates the critical and computationally intensive role of an 
 
 <br>
 <p align="center">
-  <img src="assets/Architecture_diagram.jpeg" width="800" alt="System Architecture Diagram" />
+  <img src="assets/architecture.jpeg" width="800" alt="System Architecture Diagram" />
 </p>
 <br>
 
