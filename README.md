@@ -54,8 +54,6 @@ To resolve this, human data engineers must navigate the database, read dense arc
 
 ## The Proposed Solution
 
-## The Proposed Solution
-
 We present an OpenEnv RL environment featuring an embedded, deterministic continuous Grader. The environment vectorizes the current database state after every single agent action using a Hybrid Search architecture (BM25 + Dense Semantic Embeddings). This provides a continuous reward density mapping—grading the agent purely on whether its structural operations inherently improved the theoretical Rank Fusion metrics of a downstream retrieval pipeline.
 
 ---
@@ -159,19 +157,15 @@ In practice, this environment trains an agent to behave like a retrieval-focused
 
 The environment tests agents across three progressively demanding task distributions mirroring production RAG degradation scenarios.
 
-### Easy: Conflict Resolution
-**The Vector Issue:** The base contains heavily overlapping parameters (competing versions of legacy and modern timeline protocols).
+### Easy: Contamination Purging
+**The Vector Issue:** The base contains heavily overlapping parameters or contradictory low-value documents.
 **System Goal:** Autonomously survey the semantic differences, deduce the temporal conflict, and execute `delete_document` sweeps to purge vector hallucination triggers.
 
-### Level II: Syntactic Splintering
+### Medium: Syntactic Splintering
 **The Vector Issue:** Extreme embedding decay caused by disparate conceptual structures compacted under a single referential document. This represents the well-known "PDF chunk wash-out" phenomenon.
 **System Goal:** Methodically `read` the extensive parent block, temporarily cache the semantic context limits, and utilize rapid consecutive `update_document` calls to mechanically splinter and redistribute the knowledge logic across multiple fine-grained nodes.
 
-### Level III: Duplicate Purge
-**The Vector Issue:** The KB contains overlapping FastAPI routing docs where legacy `@app.route()` guidance competes against the correct current `@app.get()` / `@app.post()` pattern with Pydantic v2.
-**System Goal:** Deduplicate legacy routing docs so retrieval consistently ranks the correct current routing reference at #1.
-
-### Level III: Duplicate Purge
+### Hard: Duplicate Purge
 **The Vector Issue:** The KB contains overlapping FastAPI routing docs where legacy `@app.route()` guidance competes against the correct current `@app.get()` / `@app.post()` pattern with Pydantic v2.
 **System Goal:** Deduplicate legacy routing docs so retrieval consistently ranks the correct current routing reference at #1.
 
@@ -182,8 +176,8 @@ The environment tests agents across three progressively demanding task distribut
 In modern AI benchmark design, the origin of test data is paramount. The isolated baseline dictionary (`kb_seed.json`) is not pulled from raw internet scrapes, but is instead **synthetically engineered** using LLMs specifically for this benchmark. 
 
 - **Zero Data Leakage:** Synthesizing the data natively ensures that the exact target strings and topological traps cannot be accidentally memorized by frontier models during their pre-training phase on standard Wikipedia/GitHub scrapes.
-- **Vocabulary Mirroring (Adversarial Noise):** The distractors injected into each task level are purposefully generated to utilize the exact same specialized terms (e.g., *API Key*, *CSS*, *Lehman Brothers*) as the correct resolution documents. This mathematical noise ceiling brutally exposes agents relying purely on lexical keyword matching.
-- **Real-World Dimensionality:** The conceptual tasks (Tech Documentation, IT Outage Post-Mortems, Historical Financial Crises) were hand-selected to replicate the exact structural dimensions of real enterprise knowledge swamps.
+- **Vocabulary Mirroring (Adversarial Noise):** The distractors injected into each task level are purposefully generated to utilize the exact same specialized terms (e.g., *Pydantic*, *FastAPI Routing*, *Pricing Tiers*) as the correct resolution documents. This mathematical noise ceiling brutally exposes agents relying purely on lexical keyword matching.
+- **Real-World Dimensionality:** The conceptual tasks (FastAPI routing drift, dense internal HR/Onboarding blobs, and contradictory pricing parameters) were hand-selected to strictly replicate the exact topological traps and structural decay found in real enterprise knowledge swamps.
 
 ---
 
