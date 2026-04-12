@@ -108,7 +108,7 @@ Agents manipulate the embedding search space via a strictly defined remote schem
 Pydantic-typed JSON states returned immediately upon trajectory execution:
 1. `message`: Terminal I/O logs, error stack-traces, or `read_document` raw buffers.
 2. `current_docs`: A hierarchical mapping of the existing document index payload ensuring contextual grounding.
-3. `reward`: The live theoretical model convergence rate formulated between `0.0` and `1.0`.
+3. `reward`: The live theoretical model convergence rate formulated between `0.01` and `0.99`.
 
 ---
 
@@ -124,6 +124,33 @@ Evaluation is robust, empirical, and mathematically bounded:
 
 **Reward Yield:** `(Successful Vectors / Total Vector Payload)` providing high-density intermediate signals mapping continuously toward the `±1.0` upper bound.
 
+### Practical RAG FAQ (Important Clarifications)
+
+These are fantastic questions, and they cut right to the core of how real-world RAG systems operate.
+
+#### 1. If we just send the KB summary, is it just metadata optimization?
+Not exactly. While the agent sees the summary by default, it also has the `read_document` action.
+
+- When the agent uses `read_document("doc_monolithic")`, the environment returns the entire raw text of that document in the `message` field of the next observation.
+- The agent can read the text, identify that it is noisy or overloaded across multiple topics, and then use `update_document` to split or rewrite content into cleaner chunks.
+- This means the benchmark supports true content optimization, not just metadata operations.
+
+#### 2. Doesn't sending the entire KB to the embedding model blow up its context window?
+No. The grader does not send the entire KB as one giant prompt.
+
+- Embedding models operate per document, not as one monolithic concatenated input.
+- The environment encodes each document individually into vectors, then stores those vectors in an index-like structure for retrieval scoring.
+- Query-time evaluation compares a query vector against document vectors. It does not require processing the full KB in one context window.
+
+#### 3. Is the result just fetching the right document, not the exact answer?
+Exactly. This environment evaluates retrieval quality, the "R" in RAG.
+
+- If retrieval is wrong, generation quality collapses and hallucination risk rises.
+- The grader checks whether documents containing the target concept are ranked near the top for each control query.
+- Optimizing document quality, structure, and noise levels pushes the clean source document toward rank 1, enabling downstream generators to answer correctly.
+
+In practice, this environment trains an agent to behave like a retrieval-focused KB operator: maintain high signal quality so the retriever does not fail under noisy enterprise conditions.
+
 ---
 
 ## 4. Curriculum Topologies
@@ -134,9 +161,9 @@ The environment tests agents across three progressively demanding task distribut
 **The Vector Issue:** The base contains heavily overlapping parameters (competing versions of legacy and modern timeline protocols).
 **System Goal:** Autonomously survey the semantic differences, deduce the temporal conflict, and execute `delete_document` sweeps to purge vector hallucination triggers.
 
-### Level II: Ontological Tagging
-**The Vector Issue:** Textual segments representing technical telemetry are too dense and sparse on specific categorical keywords, resulting in low coordinate density for deterministic algorithms.
-**System Goal:** Execute inferential reading, deduce categorical bounds organically, and route exact programmatic `metadata` tags onto corresponding payloads to anchor the search vectors.
+### Level II: Signal Separation
+**The Vector Issue:** The KB contains overlapping incident narratives mixed with distractor engineering notes, causing retrieval ambiguity.
+**System Goal:** Deduplicate noisy/partial incident content so retrieval consistently surfaces the clean resolution document at rank 1.
 
 ### Level III: Syntactic Splintering (The Monolith)
 **The Vector Issue:** Extreme embedding decay caused by disparate conceptual structures compacted under a single referential document. This represents the well-known "PDF chunk wash-out" phenomenon.
@@ -155,7 +182,7 @@ Telemetry formats strictly adhere to high-velocity logging required for large-sc
 [STEP] step=1 action=read('doc_monolithic_onboarding') reward=0.33 done=false error=null
 [STEP] step=2 action=update('doc_vpn_policy') reward=0.50 done=false error=null
 ...
-[END] success=true steps=12 score=1.00 rewards=0.33,0.50,... 
+[END] success=true steps=12 score=0.99 rewards=0.33,0.50,... 
 ```
 
 ### Execution
